@@ -28,16 +28,24 @@ function signToken(user) {
 function publicUser(user) {
   return {
     id: user._id,
+    _id: user._id,
     name: user.name,
     phone: user.phone,
     email: user.email,
     village: user.village,
     district: user.district,
     state: user.state,
+    pincode: user.pincode || "",
     landArea: user.landArea,
     landUnit: user.landUnit,
+    irrigation: user.irrigation || "",
+    crops: user.crops || [],
+    savedItems: user.savedItems || [],
+    watchlist: user.watchlist || ["सोयाबीन", "लहसुन", "गेहूँ"],
     role: user.role,
     isActive: user.isActive,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
   };
 }
 
@@ -51,8 +59,10 @@ exports.register = async (req, res) => {
       village,
       district,
       state,
+      pincode,
       landArea,
       landUnit,
+      irrigation,
     } = req.body;
 
     if (
@@ -146,6 +156,8 @@ exports.register = async (req, res) => {
       village: village.trim(),
       district: district?.trim() || "Neemuch",
       state: state?.trim() || "Madhya Pradesh",
+      pincode: pincode?.trim() || "",
+      irrigation: irrigation?.trim() || "",
       landArea: parsedLandArea,
       landUnit: selectedUnit,
 
@@ -153,10 +165,16 @@ exports.register = async (req, res) => {
       role: "farmer",
     });
 
+    const token = signToken(user);
+    res.cookie(COOKIE_NAME, token, cookieOptions());
+
     return res.status(201).json({
       success: true,
-      message: "Registration सफल रहा। अब login करें।",
-      data: { user: publicUser(user) },
+      message: "Registration सफल रहा।",
+      data: {
+        token,
+        user: publicUser(user),
+      },
     });
   } catch (error) {
     if (error.code === 11000) {
@@ -290,7 +308,10 @@ exports.login = async (req, res) => {
     return res.json({
       success: true,
       message: "Login सफल रहा।",
-      data: { user: publicUser(user) },
+      data: {
+        token,
+        user: publicUser(user),
+      },
     });
   } catch (error) {
     console.error("Login error:", error);
@@ -307,6 +328,104 @@ exports.me = async (req, res) => {
     success: true,
     data: { user: publicUser(req.user) },
   });
+};
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const user = req.user;
+    const {
+      name,
+      phone,
+      email,
+      village,
+      district,
+      state,
+      pincode,
+      landArea,
+      landUnit,
+      irrigation,
+    } = req.body;
+
+    if (name !== undefined) user.name = name.trim();
+    if (village !== undefined) user.village = village.trim();
+    if (district !== undefined) user.district = district.trim();
+    if (state !== undefined) user.state = state.trim();
+    if (pincode !== undefined) user.pincode = pincode.trim();
+    if (irrigation !== undefined) user.irrigation = irrigation.trim();
+
+    if (landArea !== undefined && landArea !== "") {
+      const parsed = Number(landArea);
+      if (Number.isFinite(parsed) && parsed >= 0) {
+        user.landArea = parsed;
+      }
+    }
+
+    if (landUnit && ["Acre", "Bigha", "Hectare"].includes(landUnit)) {
+      user.landUnit = landUnit;
+    }
+
+    if (phone) {
+      const normalizedPhone = String(phone).replace(/\D/g, "");
+      if (!/^[6-9]\d{9}$/.test(normalizedPhone)) {
+        return res.status(400).json({
+          success: false,
+          message: "सही 10 digit मोबाइल नंबर दर्ज करें।",
+        });
+      }
+
+      const duplicatePhone = await User.findOne({
+        phone: normalizedPhone,
+        _id: { $ne: user._id },
+      });
+
+      if (duplicatePhone) {
+        return res.status(409).json({
+          success: false,
+          message: "यह मोबाइल नंबर पहले से किसी अन्य अकाउंट में मौजूद है।",
+        });
+      }
+
+      user.phone = normalizedPhone;
+    }
+
+    if (email) {
+      const normalizedEmail = String(email).trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+        return res.status(400).json({
+          success: false,
+          message: "Valid email दर्ज करें।",
+        });
+      }
+
+      const duplicateEmail = await User.findOne({
+        email: normalizedEmail,
+        _id: { $ne: user._id },
+      });
+
+      if (duplicateEmail) {
+        return res.status(409).json({
+          success: false,
+          message: "यह ईमेल पहले से किसी अन्य अकाउंट में मौजूद है।",
+        });
+      }
+
+      user.email = normalizedEmail;
+    }
+
+    await user.save();
+
+    return res.json({
+      success: true,
+      message: "Profile सफलतापूर्वक अपडेट हो गई।",
+      data: { user: publicUser(user) },
+    });
+  } catch (error) {
+    console.error("Update profile error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Profile अपडेट के दौरान समस्या हुई।",
+    });
+  }
 };
 
 exports.logout = async (req, res) => {

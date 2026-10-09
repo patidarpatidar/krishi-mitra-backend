@@ -4,10 +4,15 @@ const User = require("../models/User");
 
 exports.protect = async (req, res, next) => {
   try {
+    let token = null;
     const authHeader = req.headers.authorization || "";
-    const [scheme, token] = authHeader.split(" ");
+    if (authHeader.startsWith("Bearer ")) {
+      token = authHeader.split(" ")[1];
+    } else if (req.cookies && (req.cookies.km_token || req.cookies.token)) {
+      token = req.cookies.km_token || req.cookies.token;
+    }
 
-    if (scheme !== "Bearer" || !token) {
+    if (!token) {
       return res.status(401).json({
         success: false,
         message: "Authentication token जरूरी है।",
@@ -15,8 +20,9 @@ exports.protect = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.sub || decoded.id;
 
-    const user = await User.findById(decoded.sub);
+    const user = await User.findById(userId);
 
     if (!user || !user.isActive) {
       return res.status(401).json({

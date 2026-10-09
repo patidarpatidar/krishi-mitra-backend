@@ -46,6 +46,16 @@ const userSchema = new mongoose.Schema(
       default: "Madhya Pradesh",
       trim: true,
     },
+    pincode: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    irrigation: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     landArea: {
       type: Number,
       default: 0,
@@ -65,6 +75,30 @@ const userSchema = new mongoose.Schema(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    crops: [
+      {
+        name: { type: String, required: true, trim: true },
+        area: { type: Number, default: 0 },
+        season: { type: String, default: "खरीफ" },
+        status: { type: String, default: "बुवाई की तैयारी" },
+        sowingDate: { type: String, default: "" },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
+    savedItems: [
+      {
+        itemId: { type: String, trim: true },
+        type: { type: String, default: "scheme" },
+        title: { type: String, required: true, trim: true },
+        category: { type: String, default: "" },
+        url: { type: String, default: "" },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
+    watchlist: {
+      type: [String],
+      default: ["सोयाबीन", "लहसुन", "गेहूँ"],
     },
   },
   { timestamps: true, versionKey: false }
