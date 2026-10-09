@@ -1,0 +1,35 @@
+{
+  "name": "krishi-mitra-backend",
+  "version": "1.0.0",
+  "description": "Krishi Mitra Agriculture Backend",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "seed:crops": "node src/seed/cropSeed.js",
+    "seed:scheme-categories": "node src/seed/schemeCategorySeed.js",
+    "seed:schemes": "node src/seed/governmentSchemeSeed.js",
+    "seed:organic-categories": "node src/seed/organicCategorySeed.js",
+    "seed:organic-recipes": "node src/seed/organicRecipeSeed.js",
+    "seed:blog-categories": "node src/seed/blogCategorySeed.js",
+    "seed:blogs": "node src/seed/runBlogSeeds.js",
+    "seed:livestock": "node src/seed/livestockSeed.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.6",
+    "express": "^5.2.1",
+    "express-validator": "^7.3.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.11.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
