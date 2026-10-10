@@ -3,13 +3,21 @@ const express = require("express");
 const router = express.Router();
 
 const blogController = require("../controllers/blogController");
+const Blog = require("../models/Blog");
+const {
+  createContentEngagementHandlers,
+} = require("../controllers/contentEngagementController");
 const {
   protect,
   adminOnly,
 } = require("../middleware/authMiddleware");
+const blogEngagement = createContentEngagementHandlers(Blog, "blog");
 
 // Public endpoints
 router.get("/", blogController.getBlogs);
+router.post("/:id/view", blogEngagement.recordView);
+router.put("/:id/like", blogEngagement.setLike);
+router.delete("/:id/like", blogEngagement.setLike);
 router.get("/admin/comments", protect, adminOnly, blogController.getAdminBlogComments);
 router.patch("/admin/comments/:id/answer", protect, adminOnly, blogController.answerBlogComment);
 router.delete("/admin/comments/:id", protect, adminOnly, blogController.deleteBlogComment);

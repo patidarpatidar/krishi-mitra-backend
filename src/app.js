@@ -33,6 +33,7 @@ app.use(cookieParser());
 
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/farmer", farmerRoutes);
+app.use("/api/admin", require("./routes/adminAnalyticsRoutes"));
 app.use("/api/admin/farmers", adminUserRoutes);
 
 app.get("/api/health", (req, res) => {

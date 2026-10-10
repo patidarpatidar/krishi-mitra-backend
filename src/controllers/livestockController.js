@@ -430,7 +430,6 @@ exports.recordView = async (req, res) => {
       _id: req.params.id,
       status: "published",
     }).select("_id");
-
     if (!article) {
       return res.status(404).json({
         success: false,
@@ -444,21 +443,43 @@ exports.recordView = async (req, res) => {
         visitorId,
         action: "view",
       });
-
       await LivestockArticle.updateOne(
-        { _id: article._id },
+        { _id: article._id, status: "published" },
         { $inc: { viewsCount: 1 } }
       );
     } catch (error) {
-      // Duplicate means this visitor has already counted a view.
       if (error.code !== 11000) throw error;
     }
 
-    const latest = await LivestockArticle.findById(article._id)
+    const latest = await LivestockArticle.findOne({
+      _id: req.params.id,
+      status: "published",
+    })
       .select("viewsCount likesCount")
       .lean();
 
-    return res.json({ success: true, data: latest });
+    if (!latest) {
+      return res.status(404).json({
+        success: false,
+        message: "Article नहीं मिला",
+      });
+    }
+
+    const liked = await LivestockEngagement.exists({
+      articleId: latest._id,
+      visitorId,
+      action: "like",
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        ...latest,
+        views: latest.viewsCount,
+        likes: latest.likesCount,
+        liked: Boolean(liked),
+      },
+    });
   } catch (error) {
     console.error("recordView:", error);
     return res.status(500).json({
@@ -468,7 +489,7 @@ exports.recordView = async (req, res) => {
   }
 };
 
-// PUBLIC: POST /api/livestock/:id/like
+// PUBLIC: PUT|DELETE /api/livestock/:id/like
 exports.likeArticle = async (req, res) => {
   try {
     const visitorId = getVisitorId(req);
@@ -492,35 +513,53 @@ exports.likeArticle = async (req, res) => {
       });
     }
 
+    const filter = { articleId: article._id, visitorId, action: "like" };
+    const shouldLike = req.method !== "DELETE";
     let alreadyLiked = false;
 
-    try {
-      await LivestockEngagement.create({
-        articleId: article._id,
-        visitorId,
-        action: "like",
-      });
-
-      await LivestockArticle.updateOne(
-        { _id: article._id },
-        { $inc: { likesCount: 1 } }
-      );
-    } catch (error) {
-      if (error.code === 11000) {
+    if (shouldLike) {
+      try {
+        await LivestockEngagement.create(filter);
+        await LivestockArticle.updateOne(
+          { _id: article._id, status: "published" },
+          { $inc: { likesCount: 1 } }
+        );
+      } catch (error) {
+        if (error.code !== 11000) throw error;
         alreadyLiked = true;
-      } else {
-        throw error;
+      }
+    } else {
+      const result = await LivestockEngagement.deleteOne(filter);
+      if (result.deletedCount > 0) {
+        await LivestockArticle.updateOne(
+          { _id: article._id, status: "published" },
+          { $inc: { likesCount: -1 } }
+        );
       }
     }
 
-    const latest = await LivestockArticle.findById(article._id)
+    const latest = await LivestockArticle.findOne({
+      _id: article._id,
+      status: "published",
+    })
       .select("viewsCount likesCount")
       .lean();
+    if (!latest) {
+      return res.status(404).json({
+        success: false,
+        message: "Article नहीं मिला",
+      });
+    }
 
     return res.json({
       success: true,
-      alreadyLiked,
-      data: latest,
+      alreadyLiked: shouldLike && alreadyLiked,
+      data: {
+        ...(latest || {}),
+        views: latest.viewsCount || 0,
+        likes: latest.likesCount || 0,
+        liked: shouldLike,
+      },
     });
   } catch (error) {
     console.error("likeArticle:", error);

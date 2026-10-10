@@ -215,8 +215,6 @@ const crops = [
     featured: true,
     status: "published",
 
-    views: 18320,
-    likes: 1260,
   },
 
   {
@@ -386,8 +384,6 @@ const crops = [
     featured: true,
     status: "published",
 
-    views: 12450,
-    likes: 842,
   },
 ];
 

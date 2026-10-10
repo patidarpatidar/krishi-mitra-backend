@@ -1,6 +1,15 @@
 const express = require("express");
 
 const router = express.Router();
+const OrganicRecipe = require("../models/OrganicRecipe");
+const {
+  createContentEngagementHandlers,
+} = require("../controllers/contentEngagementController");
+const recipeEngagement = createContentEngagementHandlers(
+  OrganicRecipe,
+  "organic-recipe",
+  { publicStatuses: ["active"] }
+);
 
 const {
   getRecipes,
@@ -39,6 +48,9 @@ const validateRequest = (req, res, next) => {
 };
 
 router.get("/", getRecipes);
+router.post("/:id/view", recipeEngagement.recordView);
+router.put("/:id/like", recipeEngagement.setLike);
+router.delete("/:id/like", recipeEngagement.setLike);
 
 router.get("/slug/:slug", getRecipeBySlug);
 

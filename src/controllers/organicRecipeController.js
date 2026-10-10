@@ -109,6 +109,7 @@ const getRecipeBySlug = async (req, res) => {
   try {
     const recipe = await OrganicRecipe.findOne({
       slug: req.params.slug,
+      status: "active",
     }).lean();
 
     if (!recipe) {

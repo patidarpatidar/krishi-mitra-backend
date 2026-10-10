@@ -46,6 +46,16 @@ router.post(
   engagementValidator,
   livestockController.likeArticle
 );
+router.put(
+  "/:id/like",
+  engagementValidator,
+  livestockController.likeArticle
+);
+router.delete(
+  "/:id/like",
+  engagementValidator,
+  livestockController.likeArticle
+);
 
 // =====================================
 // ADMIN-ONLY APIs

@@ -270,6 +270,7 @@ const getSchemeBySlug = async (
     const scheme =
       await GovernmentScheme.findOne({
         slug: slug.toLowerCase(),
+        status: "active",
       })
         .populate(
           "categoryId",

@@ -1,5 +1,9 @@
 
 const express = require("express");
+const Crop = require("../models/Crop");
+const {
+  createContentEngagementHandlers,
+} = require("../controllers/contentEngagementController");
 
 const {
   getCrops,
@@ -29,9 +33,13 @@ const {
 } = require("../middleware/authMiddleware");
 
 const router = express.Router();
+const cropEngagement = createContentEngagementHandlers(Crop, "crop");
 
 // Public APIs
 router.get("/", getCrops);
+router.post("/:id/view", cropEngagement.recordView);
+router.put("/:id/like", cropEngagement.setLike);
+router.delete("/:id/like", cropEngagement.setLike);
 router.get("/admin/questions", protect, adminOnly, getAdminCropQuestions);
 router.patch("/admin/questions/:id/answer", protect, adminOnly, answerCropQuestion);
 router.delete("/admin/questions/:id", protect, adminOnly, deleteCropQuestion);
