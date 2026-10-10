@@ -12,6 +12,7 @@ const organicCategoryRoutes = require("./routes/organicCategoryRoutes");
 const blogRoutes = require("./routes/blogRoutes");
 const blogCategoryRoutes = require("./routes/blogCategoryRoutes");
 const inquiryRoutes = require("./routes/inquiryRoutes");
+const subscriberRoutes = require("./routes/subscriberRoutes");
 const livestockRoutes = require("./routes/livestockRoutes");
 const farmerRoutes = require("./routes/farmerRoutes");
 const adminUserRoutes = require("./routes/adminUserRoutes");
@@ -67,6 +68,7 @@ app.use(
 app.use("/api/blogs", blogRoutes);
 app.use("/api/blog-categories", blogCategoryRoutes);
 app.use("/api/inquiries", inquiryRoutes);
+app.use("/api/subscribers", subscriberRoutes);
 app.use("/api/livestock", livestockRoutes);
 app.use(errorMiddleware);
 
