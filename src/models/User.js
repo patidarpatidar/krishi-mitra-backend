@@ -98,7 +98,7 @@ const userSchema = new mongoose.Schema(
     ],
     watchlist: {
       type: [String],
-      default: ["सोयाबीन", "लहसुन", "गेहूँ"],
+      default: [],
     },
   },
   { timestamps: true, versionKey: false }

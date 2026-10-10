@@ -18,6 +18,7 @@ const {
 const {
   organicRecipeValidation,
 } = require("../validators/organicRecipeValidator");
+const { protect, adminOnly } = require("../middleware/authMiddleware");
 
 const {
   validationResult,
@@ -41,10 +42,15 @@ router.get("/", getRecipes);
 
 router.get("/slug/:slug", getRecipeBySlug);
 
+router.get("/admin/:id", protect, adminOnly, getRecipeById);
+router.get("/admin", protect, adminOnly, getRecipes);
+
 router.get("/:id", getRecipeById);
 
 router.post(
   "/",
+  protect,
+  adminOnly,
   organicRecipeValidation,
   validateRequest,
   createRecipe
@@ -52,20 +58,26 @@ router.post(
 
 router.patch(
   "/:id",
+  protect,
+  adminOnly,
   organicRecipeValidation,
   validateRequest,
   updateRecipe
 );
 
-router.delete("/:id", deleteRecipe);
+router.delete("/:id", protect, adminOnly, deleteRecipe);
 
 router.patch(
   "/:id/status",
+  protect,
+  adminOnly,
   updateRecipeStatus
 );
 
 router.patch(
   "/:id/featured",
+  protect,
+  adminOnly,
   updateRecipeFeatured
 );
 

@@ -13,6 +13,7 @@ const {
 const {
   organicCategoryValidation,
 } = require("../validators/organicCategoryValidator");
+const { protect, adminOnly } = require("../middleware/authMiddleware");
 
 const { validationResult } = require("express-validator");
 
@@ -48,6 +49,8 @@ router.get("/:id", getCategoryById);
 
 router.post(
   "/",
+  protect,
+  adminOnly,
   organicCategoryValidation,
   validateRequest,
   createCategory
@@ -59,6 +62,8 @@ router.post(
 
 router.patch(
   "/:id",
+  protect,
+  adminOnly,
   organicCategoryValidation,
   validateRequest,
   updateCategory
@@ -68,7 +73,7 @@ router.patch(
    DELETE CATEGORY
 ========================= */
 
-router.delete("/:id", deleteCategory);
+router.delete("/:id", protect, adminOnly, deleteCategory);
 
 /* =========================
    EXPORT ROUTER

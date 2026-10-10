@@ -102,6 +102,7 @@ const getCropBySlug = async (req, res, next) => {
   try {
     const crop = await Crop.findOne({
       slug: req.params.slug.toLowerCase(),
+      status: "published",
     });
 
     if (!crop) {

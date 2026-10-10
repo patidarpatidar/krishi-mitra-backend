@@ -2,7 +2,17 @@ const mongoose = require("mongoose");
 const CropCategory = require("../models/cropCategory");
 const getCategories = async (req, res, next) => {
   try {
-    const categories = await CropCategory.find()
+    const { status } = req.query;
+    const allowedStatuses = ["active", "inactive"];
+
+    if (status && !allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid crop category status",
+      });
+    }
+
+    const categories = await CropCategory.find(status ? { status } : {})
       .sort({ name: 1 });
 
     res.json({

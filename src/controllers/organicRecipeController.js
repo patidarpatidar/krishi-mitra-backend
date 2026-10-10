@@ -16,6 +16,10 @@ const getRecipes = async (req, res) => {
 
     const filter = {};
 
+    if (req.user?.role !== "admin") {
+      filter.status = "active";
+    }
+
     if (category && category !== "all") {
       filter.category = category;
     }

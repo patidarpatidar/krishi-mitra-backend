@@ -19,6 +19,13 @@ router.get(
   categoryController.getCategories
 );
 
+router.get(
+  "/admin/:id",
+  protect,
+  adminOnly,
+  categoryController.getCategoryById
+);
+
 // Public category detail
 router.get("/:id", categoryController.getCategoryById);
 

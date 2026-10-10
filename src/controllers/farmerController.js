@@ -18,7 +18,7 @@ function publicUser(user) {
     irrigation: user.irrigation || "",
     crops: user.crops || [],
     savedItems: user.savedItems || [],
-    watchlist: user.watchlist || ["सोयाबीन", "लहसुन", "गेहूँ"],
+    watchlist: user.watchlist || [],
     role: user.role,
     isActive: user.isActive,
     createdAt: user.createdAt,
@@ -371,7 +371,7 @@ exports.getWatchlist = async (req, res) => {
   try {
     return res.json({
       success: true,
-      data: req.user.watchlist || ["सोयाबीन", "लहसुन", "गेहूँ"],
+      data: req.user.watchlist || [],
     });
   } catch (error) {
     console.error("Get watchlist error:", error);
@@ -462,40 +462,13 @@ exports.getDashboardOverview = async (req, res) => {
       }
     });
 
-    // Fallback if advisories empty
-    if (advisories.length === 0) {
-      advisories.push(
-        {
-          id: 1,
-          crop: "सोयाबीन",
-          title: "फसल में पत्तियों की निगरानी करें",
-          description: "पत्तियों पर पीले या भूरे धब्बे दिखाई देने पर फसल की नियमित निगरानी करें और उचित प्रबंधन करें।",
-          type: "फसल सलाह",
-        },
-        {
-          id: 2,
-          crop: "लहसुन",
-          title: "सिंचाई एवं नमी प्रबंधन",
-          description: "मिट्टी की नमी के अनुसार सिंचाई करें और खेत में जलभराव न होने दें।",
-          type: "सिंचाई",
-        },
-        {
-          id: 3,
-          crop: "गेहूँ",
-          title: "रबी बुवाई की तैयारी",
-          description: "रबी फसल की बुवाई से पहले खेत की तैयारी, बीज उपचार और उचित उर्वरक प्रबंधन करें।",
-          type: "रबी तैयारी",
-        }
-      );
-    }
-
     const formattedSchemes = schemes.map((s) => ({
       id: s.slug || s.id || s._id,
       name: s.name,
       shortName: s.shortName || s.name,
       category: s.category || "सरकारी योजना",
-      description: s.description || "पात्र किसान परिवारों के लिए सरकारी सहायता योजना।",
-      url: s.officialUrl || s.sourceUrl || "https://pmkisan.gov.in/",
+      description: s.description || "",
+      url: s.officialUrl || s.sourceUrl || "",
     }));
 
     return res.json({
@@ -513,7 +486,7 @@ exports.getDashboardOverview = async (req, res) => {
         crops: user.crops || [],
         schemes: formattedSchemes,
         advisories: advisories.slice(0, 6),
-        watchlist: user.watchlist || ["सोयाबीन", "लहसुन", "गेहूँ"],
+        watchlist: user.watchlist || [],
       },
     });
   } catch (error) {
