@@ -1,5 +1,11 @@
 const mongoose = require("mongoose");
 const Crop = require("../models/Crop");
+const CropQuestion = require("../models/CropQuestion");
+
+const getPublishedCrop = (slug) =>
+  Crop.findOne({ slug: slug?.trim().toLowerCase(), status: "published" })
+    .select("_id")
+    .lean();
 
 // GET /api/crops
 const getCrops = async (req, res, next) => {
@@ -118,6 +124,123 @@ const getCropBySlug = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+};
+
+const getCropQuestions = async (req, res, next) => {
+  try {
+    const crop = await getPublishedCrop(req.params.slug);
+    if (!crop) {
+      return res.status(404).json({
+        success: false,
+        message: "Published crop not found.",
+      });
+    }
+
+    const questions = await CropQuestion.find({ cropId: crop._id })
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .lean();
+
+    return res.json({
+      success: true,
+      data: questions,
+      count: questions.length,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const createCropQuestion = async (req, res, next) => {
+  const name = typeof req.body?.name === "string" ? req.body.name.trim() : "";
+  const question =
+    typeof req.body?.question === "string" ? req.body.question.trim() : "";
+
+  if (!question || question.length > 2000 || name.length > 100) {
+    return res.status(400).json({
+      success: false,
+      message: "A question of up to 2000 characters is required.",
+    });
+  }
+
+  try {
+    const crop = await getPublishedCrop(req.params.slug);
+    if (!crop) {
+      return res.status(404).json({
+        success: false,
+        message: "Published crop not found.",
+      });
+    }
+
+    const record = await CropQuestion.create({
+      cropId: crop._id,
+      name: name || "किसान",
+      question,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Question submitted successfully.",
+      data: record,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const getAdminCropQuestions = async (req, res, next) => {
+  try {
+    const questions = await CropQuestion.find()
+      .populate("cropId", "name slug")
+      .sort({ createdAt: -1 })
+      .limit(500)
+      .lean();
+    return res.json({ success: true, data: questions, count: questions.length });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const answerCropQuestion = async (req, res, next) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({ success: false, message: "Invalid question ID." });
+  }
+  const answer = typeof req.body?.answer === "string" ? req.body.answer.trim() : "";
+  if (!answer || answer.length > 2000) {
+    return res.status(400).json({
+      success: false,
+      message: "An answer of up to 2000 characters is required.",
+    });
+  }
+
+  try {
+    const question = await CropQuestion.findByIdAndUpdate(
+      req.params.id,
+      { $set: { answer, answeredAt: new Date() } },
+      { new: true, runValidators: true },
+    ).populate("cropId", "name slug");
+    if (!question) {
+      return res.status(404).json({ success: false, message: "Question not found." });
+    }
+    return res.json({ success: true, data: question });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const deleteCropQuestion = async (req, res, next) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({ success: false, message: "Invalid question ID." });
+  }
+  try {
+    const question = await CropQuestion.findByIdAndDelete(req.params.id);
+    if (!question) {
+      return res.status(404).json({ success: false, message: "Question not found." });
+    }
+    return res.json({ success: true, message: "Question deleted." });
+  } catch (error) {
+    return next(error);
   }
 };
 
@@ -301,6 +424,11 @@ module.exports = {
   getCrops,
   getCropById,
   getCropBySlug,
+  getCropQuestions,
+  createCropQuestion,
+  getAdminCropQuestions,
+  answerCropQuestion,
+  deleteCropQuestion,
   createCrop,
   updateCrop,
   deleteCrop,

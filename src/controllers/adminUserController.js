@@ -1,4 +1,23 @@
 const User = require("../models/User");
+const mongoose = require("mongoose");
+
+exports.getFarmerById = async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ success: false, message: "Invalid farmer ID." });
+    }
+    const farmer = await User.findOne({ _id: req.params.id, role: "farmer" })
+      .select("-password")
+      .lean();
+    if (!farmer) {
+      return res.status(404).json({ success: false, message: "किसान अकाउंट नहीं मिला।" });
+    }
+    return res.json({ success: true, data: farmer });
+  } catch (error) {
+    console.error("Get admin farmer details error:", error);
+    return res.status(500).json({ success: false, message: "किसान विवरण लोड नहीं हो सके।" });
+  }
+};
 
 exports.getFarmers = async (req, res) => {
   try {

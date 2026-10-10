@@ -10,6 +10,13 @@ const {
 
 // Public endpoints
 router.get("/", blogController.getBlogs);
+router.get("/admin/comments", protect, adminOnly, blogController.getAdminBlogComments);
+router.patch("/admin/comments/:id/answer", protect, adminOnly, blogController.answerBlogComment);
+router.delete("/admin/comments/:id", protect, adminOnly, blogController.deleteBlogComment);
+router.get("/slug/:slug/feedback", blogController.getBlogFeedback);
+router.post("/slug/:slug/feedback", blogController.submitBlogFeedback);
+router.get("/slug/:slug/comments", blogController.getBlogComments);
+router.post("/slug/:slug/comments", blogController.createBlogComment);
 router.get("/slug/:slug", blogController.getBlogBySlug);
 
 // Admin endpoints

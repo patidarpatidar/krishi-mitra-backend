@@ -5,6 +5,11 @@ const {
   getCrops,
   getCropById,
   getCropBySlug,
+  getCropQuestions,
+  createCropQuestion,
+  getAdminCropQuestions,
+  answerCropQuestion,
+  deleteCropQuestion,
   createCrop,
   updateCrop,
   deleteCrop,
@@ -27,6 +32,11 @@ const router = express.Router();
 
 // Public APIs
 router.get("/", getCrops);
+router.get("/admin/questions", protect, adminOnly, getAdminCropQuestions);
+router.patch("/admin/questions/:id/answer", protect, adminOnly, answerCropQuestion);
+router.delete("/admin/questions/:id", protect, adminOnly, deleteCropQuestion);
+router.get("/slug/:slug/questions", getCropQuestions);
+router.post("/slug/:slug/questions", createCropQuestion);
 router.get("/slug/:slug", getCropBySlug);
 router.get("/:id", getCropById);
 
