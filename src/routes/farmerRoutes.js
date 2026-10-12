@@ -8,6 +8,10 @@ const {
   addCrop,
   updateCrop,
   deleteCrop,
+  getCropExpenses,
+  addCropExpense,
+  updateCropExpense,
+  deleteCropExpense,
   getSavedItems,
   addSavedItem,
   deleteSavedItem,
@@ -30,6 +34,10 @@ router.get("/crops", getCrops);
 router.post("/crops", addCrop);
 router.patch("/crops/:id", updateCrop);
 router.delete("/crops/:id", deleteCrop);
+router.get("/crops/:id/expenses", getCropExpenses);
+router.post("/crops/:id/expenses", addCropExpense);
+router.patch("/crops/:id/expenses/:expenseId", updateCropExpense);
+router.delete("/crops/:id/expenses/:expenseId", deleteCropExpense);
 
 router.get("/saved", getSavedItems);
 router.post("/saved", addSavedItem);

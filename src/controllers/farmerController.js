@@ -162,21 +162,48 @@ exports.getCrops = async (req, res) => {
 
 exports.addCrop = async (req, res) => {
   try {
-    const { name, area, season, status, sowingDate } = req.body;
+    const {
+      name,
+      area,
+      season,
+      status,
+      sowingDate,
+      estimatedProductionQuintals,
+      expectedSalePrice,
+    } = req.body;
 
-    if (!name || !name.trim()) {
+    if (typeof name !== "string" || !name.trim()) {
       return res.status(400).json({
         success: false,
         message: "फसल का नाम भरना जरूरी है।",
       });
     }
 
+    const parsedArea = Number(area);
+    const parsedProduction = Number(estimatedProductionQuintals || 0);
+    const parsedSalePrice = Number(expectedSalePrice || 0);
+    if (
+      !Number.isFinite(parsedArea) ||
+      parsedArea <= 0 ||
+      !Number.isFinite(parsedProduction) ||
+      parsedProduction < 0 ||
+      !Number.isFinite(parsedSalePrice) ||
+      parsedSalePrice < 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "रकबा, अनुमानित उत्पादन और बिक्री दर सही दर्ज करें।",
+      });
+    }
+
     const newCrop = {
       name: name.trim(),
-      area: Number(area) || 0,
+      area: parsedArea,
       season: season || "खरीफ",
       status: status || "बुवाई की तैयारी",
       sowingDate: sowingDate || "",
+      estimatedProductionQuintals: parsedProduction,
+      expectedSalePrice: parsedSalePrice,
       createdAt: new Date(),
     };
 
@@ -200,7 +227,16 @@ exports.addCrop = async (req, res) => {
 exports.updateCrop = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, area, season, status, sowingDate } = req.body;
+    const {
+      name,
+      area,
+      season,
+      status,
+      sowingDate,
+      estimatedProductionQuintals,
+      expectedSalePrice,
+      isArchived,
+    } = req.body;
 
     const crop = req.user.crops.id(id);
     if (!crop) {
@@ -215,6 +251,24 @@ exports.updateCrop = async (req, res) => {
     if (season !== undefined) crop.season = season;
     if (status !== undefined) crop.status = status;
     if (sowingDate !== undefined) crop.sowingDate = sowingDate;
+    if (estimatedProductionQuintals !== undefined) {
+      const parsed = Number(estimatedProductionQuintals);
+      if (!Number.isFinite(parsed) || parsed < 0) {
+        return res.status(400).json({ success: false, message: "अनुमानित उत्पादन सही भरें।" });
+      }
+      crop.estimatedProductionQuintals = parsed;
+    }
+    if (expectedSalePrice !== undefined) {
+      const parsed = Number(expectedSalePrice);
+      if (!Number.isFinite(parsed) || parsed < 0) {
+        return res.status(400).json({ success: false, message: "बिक्री मूल्य सही भरें।" });
+      }
+      crop.expectedSalePrice = parsed;
+    }
+    if (isArchived !== undefined) {
+      crop.isArchived = Boolean(isArchived);
+      crop.archivedAt = crop.isArchived ? new Date() : null;
+    }
 
     await req.user.save();
 
@@ -258,6 +312,140 @@ exports.deleteCrop = async (req, res) => {
       success: false,
       message: "फसल हटाने में समस्या हुई।",
     });
+  }
+};
+
+function serializeCropExpenses(crop) {
+  const expenses = crop.expenses || [];
+  const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  return { expenses, total };
+}
+
+exports.getCropExpenses = async (req, res) => {
+  const crop = req.user.crops.id(req.params.id);
+  if (!crop) {
+    return res.status(404).json({ success: false, message: "फसल नहीं मिली।" });
+  }
+
+  return res.json({ success: true, data: serializeCropExpenses(crop) });
+};
+
+exports.addCropExpense = async (req, res) => {
+  try {
+    const crop = req.user.crops.id(req.params.id);
+    if (!crop) {
+      return res.status(404).json({ success: false, message: "फसल नहीं मिली।" });
+    }
+
+    const { category, stage = "बुवाई", amount, date, note = "" } = req.body;
+    const parsedAmount = Number(amount);
+    const parsedDate = date ? new Date(date) : new Date();
+
+    if (
+      typeof category !== "string" ||
+      !category.trim() ||
+      typeof stage !== "string" ||
+      !stage.trim() ||
+      !Number.isFinite(parsedAmount) ||
+      parsedAmount <= 0 ||
+      Number.isNaN(parsedDate.getTime()) ||
+      typeof note !== "string"
+    ) {
+      return res.status(400).json({ success: false, message: "खर्च का विवरण सही भरें।" });
+    }
+
+    crop.expenses.push({
+      category: category.trim(),
+      stage: stage.trim(),
+      amount: parsedAmount,
+      date: parsedDate,
+      note: note.trim(),
+      createdAt: new Date(),
+    });
+    await req.user.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "फसल का खर्च सुरक्षित हो गया।",
+      data: serializeCropExpenses(crop),
+    });
+  } catch (error) {
+    console.error("Add crop expense error:", error);
+    return res.status(500).json({ success: false, message: "खर्च सुरक्षित नहीं हो सका।" });
+  }
+};
+
+exports.updateCropExpense = async (req, res) => {
+  try {
+    const crop = req.user.crops.id(req.params.id);
+    const expense = crop?.expenses.id(req.params.expenseId);
+    if (!crop || !expense) {
+      return res.status(404).json({ success: false, message: "खर्च नहीं मिला।" });
+    }
+
+    const { category, stage, amount, date, note } = req.body;
+    if (category !== undefined) {
+      if (typeof category !== "string" || !category.trim()) {
+        return res.status(400).json({ success: false, message: "खर्च का प्रकार भरें।" });
+      }
+      expense.category = category.trim();
+    }
+    if (stage !== undefined) {
+      if (typeof stage !== "string" || !stage.trim()) {
+        return res.status(400).json({ success: false, message: "फसल का चरण चुनें।" });
+      }
+      expense.stage = stage.trim();
+    }
+    if (amount !== undefined) {
+      const parsedAmount = Number(amount);
+      if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+        return res.status(400).json({ success: false, message: "खर्च राशि सही भरें।" });
+      }
+      expense.amount = parsedAmount;
+    }
+    if (date !== undefined) {
+      const parsedDate = new Date(date);
+      if (Number.isNaN(parsedDate.getTime())) {
+        return res.status(400).json({ success: false, message: "खर्च की तारीख सही भरें।" });
+      }
+      expense.date = parsedDate;
+    }
+    if (note !== undefined) {
+      if (typeof note !== "string") {
+        return res.status(400).json({ success: false, message: "नोट सही भरें।" });
+      }
+      expense.note = note.trim();
+    }
+
+    await req.user.save();
+    return res.json({
+      success: true,
+      message: "खर्च अपडेट हो गया।",
+      data: serializeCropExpenses(crop),
+    });
+  } catch (error) {
+    console.error("Update crop expense error:", error);
+    return res.status(500).json({ success: false, message: "खर्च अपडेट नहीं हो सका।" });
+  }
+};
+
+exports.deleteCropExpense = async (req, res) => {
+  try {
+    const crop = req.user.crops.id(req.params.id);
+    if (!crop || !crop.expenses.id(req.params.expenseId)) {
+      return res.status(404).json({ success: false, message: "खर्च नहीं मिला।" });
+    }
+
+    crop.expenses.pull({ _id: req.params.expenseId });
+    await req.user.save();
+    return res.json({
+      success: true,
+      message: "खर्च हटा दिया गया।",
+      data: serializeCropExpenses(crop),
+    });
+  } catch (error) {
+    console.error("Delete crop expense error:", error);
+    return res.status(500).json({ success: false, message: "खर्च हटाया नहीं जा सका।" });
   }
 };
 
@@ -482,6 +670,11 @@ exports.getDashboardOverview = async (req, res) => {
           cropsCount: user.crops?.length || 0,
           savedCount: user.savedItems?.length || 0,
           watchlistCount: user.watchlist?.length || 0,
+          totalCropExpenses: (user.crops || []).reduce(
+            (total, crop) =>
+              total + (crop.expenses || []).reduce((sum, expense) => sum + expense.amount, 0),
+            0
+          ),
         },
         crops: user.crops || [],
         schemes: formattedSchemes,
