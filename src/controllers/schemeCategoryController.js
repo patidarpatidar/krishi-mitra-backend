@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const SchemeCategory = require("../models/SchemeCategory");
+const GovernmentScheme = require("../models/GovernmentScheme");
 
 // =========================================================
 // GET ALL CATEGORIES
@@ -34,7 +35,7 @@ const getCategories = async (req, res, next) => {
     }
 
     const categories = await SchemeCategory.find(filter)
-      .sort({ name: 1 })
+      .sort({ sortOrder: 1, name: 1 })
       .lean();
 
     res.status(200).json({
@@ -93,6 +94,8 @@ const createCategory = async (req, res, next) => {
       slug,
       description,
       status,
+      icon,
+      sortOrder,
     } = req.body;
 
     const existingCategory =
@@ -116,6 +119,8 @@ const createCategory = async (req, res, next) => {
       slug,
       description,
       status,
+      icon,
+      sortOrder,
     });
 
     res.status(201).json({
@@ -154,11 +159,15 @@ const updateCategory = async (req, res, next) => {
       });
     }
 
+    const previousSlug = category.slug;
+
     const {
       name,
       slug,
       description,
       status,
+      icon,
+      sortOrder,
     } = req.body;
 
     if (name !== undefined) {
@@ -175,6 +184,12 @@ const updateCategory = async (req, res, next) => {
 
     if (status !== undefined) {
       category.status = status;
+    }
+    if (icon !== undefined) {
+      category.icon = icon;
+    }
+    if (sortOrder !== undefined) {
+      category.sortOrder = Number(sortOrder) || 0;
     }
 
     const duplicateFilter = {
@@ -213,6 +228,17 @@ const updateCategory = async (req, res, next) => {
     }
 
     await category.save();
+    if (previousSlug !== category.slug) {
+      await GovernmentScheme.updateMany(
+        { $or: [{ categoryId: category._id }, { categorySlug: previousSlug }] },
+        { $set: { category: category.name, categorySlug: category.slug } }
+      );
+    } else {
+      await GovernmentScheme.updateMany(
+        { categoryId: category._id },
+        { $set: { category: category.name } }
+      );
+    }
 
     res.status(200).json({
       success: true,
@@ -247,6 +273,15 @@ const deleteCategory = async (req, res, next) => {
       return res.status(404).json({
         success: false,
         message: "Scheme category not found",
+      });
+    }
+
+    if (await GovernmentScheme.exists({
+      $or: [{ categoryId: category._id }, { categorySlug: category.slug }],
+    })) {
+      return res.status(409).json({
+        success: false,
+        message: "इस श्रेणी में योजनाएँ मौजूद हैं। पहले उनकी category बदलें।",
       });
     }
 

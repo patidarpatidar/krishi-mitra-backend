@@ -283,7 +283,7 @@ const cropSchema = new mongoose.Schema(
 
     author: {
       type: String,
-      default: "कृषि मित्र टीम",
+      default: "किसान मित्र टीम",
       trim: true,
     },
 

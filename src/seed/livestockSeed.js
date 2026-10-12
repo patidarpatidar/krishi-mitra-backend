@@ -74,14 +74,14 @@ a: "लाभ पशु की उत्पादकता, दूध के स
 },
 ],
 readTime: "6 मिनट",
-metaTitle: "गाय-भैंस पालन की पूरी जानकारी | Krishi Mitra",
+metaTitle: "गाय-भैंस पालन की पूरी जानकारी | Kisan Mitra",
 metaDescription:
 "डेयरी व्यवसाय शुरू करने, पशुओं के आहार, स्वास्थ्य, देखभाल और दूध से आय का हिसाब समझें।",
 keywords: ["गाय पालन", "भैंस पालन", "डेयरी फार्मिंग", "पशु आहार"],
 status: "published",
 featured: true,
 sortOrder: 1,
-author: "Krishi Mitra",
+author: "Kisan Mitra",
 },
 
 {
@@ -154,14 +154,14 @@ a: "टीकाकरण का कार्यक्रम क्षेत्�
 },
 ],
 readTime: "5 मिनट",
-metaTitle: "बकरी पालन की पूरी जानकारी | Krishi Mitra",
+metaTitle: "बकरी पालन की पूरी जानकारी | Kisan Mitra",
 metaDescription:
 "बकरी पालन, नस्ल चयन, शेड, आहार, स्वास्थ्य और बाजार की तैयारी के बारे में जानें।",
 keywords: ["बकरी पालन", "बकरी की नस्ल", "बकरी आहार", "पशुपालन"],
 status: "published",
 featured: true,
 sortOrder: 2,
-author: "Krishi Mitra",
+author: "Kisan Mitra",
 },
 
 {
@@ -234,14 +234,14 @@ a: "लाभ चूजों और फीड की लागत, उत्प
 },
 ],
 readTime: "5 मिनट",
-metaTitle: "मुर्गी पालन की पूरी जानकारी | Krishi Mitra",
+metaTitle: "मुर्गी पालन की पूरी जानकारी | Kisan Mitra",
 metaDescription:
 "ब्रॉयलर और लेयर पालन, शेड, फीड, स्वास्थ्य और बिक्री प्रबंधन की बुनियादी जानकारी।",
 keywords: ["मुर्गी पालन", "ब्रॉयलर", "लेयर फार्मिंग", "पोल्ट्री फार्म"],
 status: "published",
 featured: false,
 sortOrder: 3,
-author: "Krishi Mitra",
+author: "Kisan Mitra",
 },
 ];
 

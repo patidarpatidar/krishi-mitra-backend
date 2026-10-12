@@ -156,7 +156,7 @@ const organicRecipeSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
-      enum: ["fertilizer", "pesticide", "fungicide"],
+      trim: true,
       index: true,
     },
 

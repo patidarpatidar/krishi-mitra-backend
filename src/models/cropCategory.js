@@ -16,6 +16,19 @@ const cropCategorySchema = new mongoose.Schema(
       trim: true,
     },
 
+    icon: {
+      type: String,
+      trim: true,
+      default: "🌱",
+      maxlength: 16,
+    },
+
+    sortOrder: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+
     status: {
       type: String,
       enum: ["active", "inactive"],

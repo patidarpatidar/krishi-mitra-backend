@@ -87,7 +87,7 @@ const schemes = [
 
     seo: {
       metaTitle:
-        "PM-KISAN योजना 2026 | किसान सम्मान निधि | Krishi Mitra",
+        "PM-KISAN योजना 2026 | किसान सम्मान निधि | Kisan Mitra",
 
       metaDescription:
         "PM-KISAN योजना की पात्रता, ₹6,000 वार्षिक सहायता, दस्तावेज, आवेदन प्रक्रिया और beneficiary status की जानकारी।",
@@ -360,7 +360,7 @@ const schemes = [
 
     seo: {
       metaTitle:
-        "KCC योजना 2026 | किसान क्रेडिट कार्ड | Krishi Mitra",
+        "KCC योजना 2026 | किसान क्रेडिट कार्ड | Kisan Mitra",
 
       metaDescription:
         "किसान क्रेडिट कार्ड KCC की पात्रता, लाभ, जरूरी दस्तावेज, आवेदन प्रक्रिया और कृषि ऋण की जानकारी।",

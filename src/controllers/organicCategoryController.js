@@ -1,4 +1,5 @@
 const OrganicCategory = require("../models/OrganicCategory");
+const OrganicRecipe = require("../models/OrganicRecipe");
 
 const getCategories = async (req, res) => {
   try {
@@ -9,7 +10,7 @@ const getCategories = async (req, res) => {
     }
 
     const categories = await OrganicCategory.find(filter)
-      .sort({ name: 1 })
+      .sort({ sortOrder: 1, name: 1 })
       .lean();
 
     return res.status(200).json({
@@ -59,6 +60,8 @@ const createCategory = async (req, res) => {
       slug: req.body.slug,
       description: req.body.description || "",
       status: req.body.status || "active",
+      icon: req.body.icon || "🌿",
+      sortOrder: Number(req.body.sortOrder) || 0,
     });
 
     return res.status(201).json({
@@ -85,6 +88,11 @@ const createCategory = async (req, res) => {
 
 const updateCategory = async (req, res) => {
   try {
+    const previousCategory = await OrganicCategory.findById(req.params.id);
+    if (!previousCategory) {
+      return res.status(404).json({ success: false, message: "Organic category not found" });
+    }
+    const previousSlug = previousCategory.slug;
     const category = await OrganicCategory.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -99,6 +107,17 @@ const updateCategory = async (req, res) => {
         success: false,
         message: "Organic category not found",
       });
+    }
+
+    if (previousSlug !== category.slug) {
+      await OrganicRecipe.updateMany(
+        { $or: [
+          { categoryId: category._id },
+          { categorySlug: previousSlug },
+          { category: previousSlug },
+        ] },
+        { $set: { category: category.slug, categorySlug: category.slug } }
+      );
     }
 
     return res.status(200).json({
@@ -125,9 +144,7 @@ const updateCategory = async (req, res) => {
 
 const deleteCategory = async (req, res) => {
   try {
-    const category = await OrganicCategory.findByIdAndDelete(
-      req.params.id
-    );
+    const category = await OrganicCategory.findById(req.params.id);
 
     if (!category) {
       return res.status(404).json({
@@ -135,6 +152,21 @@ const deleteCategory = async (req, res) => {
         message: "Organic category not found",
       });
     }
+
+    if (await OrganicRecipe.exists({
+      $or: [
+        { categoryId: category._id },
+        { categorySlug: category.slug },
+        { category: category.slug },
+      ],
+    })) {
+      return res.status(409).json({
+        success: false,
+        message: "इस श्रेणी में recipes मौजूद हैं। पहले उनकी category बदलें।",
+      });
+    }
+
+    await category.deleteOne();
 
     return res.status(200).json({
       success: true,

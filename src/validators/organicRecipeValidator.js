@@ -26,7 +26,10 @@ const organicRecipeValidation = [
     .withMessage("Recipe type is required"),
 
   body("category")
-    .isIn(["fertilizer", "pesticide", "fungicide"])
+    .isString()
+    .trim()
+    .notEmpty()
+    .matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
     .withMessage("Invalid organic recipe category"),
 
   body("target")

@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const CropCategory = require("../models/cropCategory");
+const Crop = require("../models/Crop");
 const getCategories = async (req, res, next) => {
   try {
     const { status } = req.query;
@@ -13,7 +14,7 @@ const getCategories = async (req, res, next) => {
     }
 
     const categories = await CropCategory.find(status ? { status } : {})
-      .sort({ name: 1 });
+      .sort({ sortOrder: 1, name: 1 });
 
     res.json({
       success: true,
@@ -82,6 +83,12 @@ const updateCategory = async (req, res, next) => {
       });
     }
 
+    const previousCategory = await CropCategory.findById(id);
+    if (!previousCategory) {
+      return res.status(404).json({ success: false, message: "Category not found" });
+    }
+
+    const previousSlug = previousCategory.slug;
     const category = await CropCategory.findByIdAndUpdate(
       id,
       req.body,
@@ -98,6 +105,13 @@ const updateCategory = async (req, res, next) => {
       });
     }
 
+    if (previousSlug !== category.slug || previousCategory.name !== category.name) {
+      await Crop.updateMany(
+        { "category.key": previousSlug },
+        { $set: { "category.key": category.slug, "category.label": category.name } }
+      );
+    }
+
     res.json({
       success: true,
       message: "Category updated successfully",
@@ -112,7 +126,7 @@ const deleteCategory = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const category = await CropCategory.findByIdAndDelete(id);
+    const category = await CropCategory.findById(id);
 
     if (!category) {
       return res.status(404).json({
@@ -120,6 +134,15 @@ const deleteCategory = async (req, res, next) => {
         message: "Category not found",
       });
     }
+
+    if (await Crop.exists({ "category.key": category.slug })) {
+      return res.status(409).json({
+        success: false,
+        message: "इस श्रेणी में फसलें मौजूद हैं। पहले उनकी category बदलें।",
+      });
+    }
+
+    await category.deleteOne();
 
     res.json({
       success: true,

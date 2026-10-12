@@ -14,6 +14,7 @@ const blogCategoryRoutes = require("./routes/blogCategoryRoutes");
 const inquiryRoutes = require("./routes/inquiryRoutes");
 const subscriberRoutes = require("./routes/subscriberRoutes");
 const livestockRoutes = require("./routes/livestockRoutes");
+const livestockCategoryRoutes = require("./routes/livestockCategoryRoutes");
 const farmerRoutes = require("./routes/farmerRoutes");
 const adminUserRoutes = require("./routes/adminUserRoutes");
 
@@ -39,7 +40,7 @@ app.use("/api/admin/farmers", adminUserRoutes);
 app.get("/api/health", (req, res) => {
   res.json({
     success: true,
-    message: "Krishi Mitra API is running",
+    message: "Kisan Mitra API is running",
   });
 });
 
@@ -71,6 +72,7 @@ app.use("/api/blog-categories", blogCategoryRoutes);
 app.use("/api/inquiries", inquiryRoutes);
 app.use("/api/subscribers", subscriberRoutes);
 app.use("/api/livestock", livestockRoutes);
+app.use("/api/livestock-categories", livestockCategoryRoutes);
 app.use(errorMiddleware);
 
 module.exports = app;

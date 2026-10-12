@@ -1,15 +1,6 @@
 const { body, param, query, validationResult } = require("express-validator");
 const mongoose = require("mongoose");
 
-const allowedCategories = [
-"dairy",
-"goat",
-"poultry",
-"fodder",
-"health",
-"schemes",
-];
-
 const allowedStatuses = ["draft", "published", "archived"];
 
 const validateRequest = (req, res, next) => {
@@ -58,7 +49,7 @@ body("subtitle")
 
 body("category")
 .optional()
-.isIn(allowedCategories)
+.matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
 .withMessage("Invalid category"),
 
 body("categoryLabel")
@@ -222,7 +213,8 @@ body("slug")
 .isLength({ max: 200 }),
 
 body("category")
-.isIn(allowedCategories)
+.isString()
+.matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
 .withMessage("A valid category is required"),
 
 ...articleFields,
@@ -255,7 +247,7 @@ validateRequest,
 const listLivestockValidator = [
 query("category")
 .optional()
-.isIn(allowedCategories)
+.matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
 .withMessage("Invalid category"),
 
 query("status")

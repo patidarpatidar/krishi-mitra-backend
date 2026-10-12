@@ -25,14 +25,8 @@ const editableFields = [
   "author",
 ];
 
-const validCategories = [
-  "dairy",
-  "goat",
-  "poultry",
-  "fodder",
-  "health",
-  "schemes",
-];
+const validCategorySlug = (value) =>
+  typeof value === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value);
 
 const getVisitorId = (req) => {
   const value = req.body?.visitorId || req.headers["x-visitor-id"];
@@ -67,7 +61,7 @@ exports.getPublicArticles = async (req, res) => {
     const filter = { status: "published" };
 
     if (category && category !== "all") {
-      if (!validCategories.includes(category)) {
+      if (!validCategorySlug(category)) {
         return res.status(400).json({
           success: false,
           message: "Invalid category",
@@ -152,7 +146,7 @@ exports.getAdminArticles = async (req, res) => {
     const filter = {};
 
     if (category && category !== "all") {
-      if (!validCategories.includes(category)) {
+      if (!validCategorySlug(category)) {
         return res.status(400).json({
           success: false,
           message: "Invalid category",
@@ -249,7 +243,7 @@ exports.createArticle = async (req, res) => {
     if (
       !title?.trim() ||
       !slug?.trim() ||
-      !validCategories.includes(category)
+      !validCategorySlug(category)
     ) {
       return res.status(400).json({
         success: false,
@@ -326,7 +320,7 @@ exports.updateArticle = async (req, res) => {
       payload.title = payload.title.trim();
     }
 
-    if (payload.category && !validCategories.includes(payload.category)) {
+    if (payload.category && !validCategorySlug(payload.category)) {
       return res.status(400).json({
         success: false,
         message: "Invalid category",

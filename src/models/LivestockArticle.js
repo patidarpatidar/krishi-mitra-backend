@@ -38,14 +38,7 @@ const livestockArticleSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
-      enum: [
-        "dairy",
-        "goat",
-        "poultry",
-        "fodder",
-        "health",
-        "schemes",
-      ],
+      trim: true,
       index: true,
     },
     categoryLabel: { type: String, default: "" },
@@ -87,7 +80,7 @@ const livestockArticleSchema = new mongoose.Schema(
     viewsCount: { type: Number, default: 0, min: 0 },
     likesCount: { type: Number, default: 0, min: 0 },
 
-    author: { type: String, default: "Krishi Mitra" },
+    author: { type: String, default: "Kisan Mitra" },
     publishedAt: { type: Date, default: null },
   },
   { timestamps: true }
